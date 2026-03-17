@@ -1,10 +1,9 @@
-using GitMonitor.Application.DTOs;
-using GitMonitor.Domain.Interfaces;
-using GitMonitor.Domain.Entities;
-using GitMonitor.Infrastructure.Data;
+using Classroom.API.DTOs;
+using Classroom.API.Entities;
+using Classroom.API.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace GitMonitor.API.Endpoints;
+namespace Classroom.API.Endpoints;
 
 public static class ClassRoomEndpoints
 {
@@ -12,19 +11,28 @@ public static class ClassRoomEndpoints
     {
         var group = app.MapGroup("/api/classrooms").WithTags("Classrooms");
 
-        group.MapGet("/", async (IClassRoomRepository repo) =>
+        group.MapGet("/", async (ClassroomDbContext db) =>
         {
-            var classRooms = await repo.GetAllAsync();
+            var classRooms = await db.ClassRooms
+                .Include(c => c.StudentGroups)
+                .ThenInclude(g => g.Students)
+                .ToListAsync();
+            
             return Results.Ok(classRooms.Select(c => new ClassRoomResponseDto(
                 c.Id, c.Name, c.TeacherId, c.IsActive,
                 c.StudentGroups.Count,
                 c.StudentGroups.SelectMany(g => g.Students).Count())));
         }).WithName("GetAllClassrooms");
 
-        group.MapGet("/{id}", async (int id, IClassRoomRepository repo) =>
+        group.MapGet("/{id}", async (int id, ClassroomDbContext db) =>
         {
-            var c = await repo.GetByIdWithDetailsAsync(id);
+            var c = await db.ClassRooms
+                .Include(c => c.StudentGroups)
+                .ThenInclude(g => g.Students)
+                .FirstOrDefaultAsync(c => c.Id == id);
+                
             if (c == null) return Results.NotFound();
+            
             return Results.Ok(new
             {
                 c.Id, c.Name, c.TeacherId, c.IsActive,
@@ -36,46 +44,51 @@ public static class ClassRoomEndpoints
             });
         }).WithName("GetClassroomById");
 
-        group.MapPost("/", async (CreateClassRoomDto dto, ITeacherRepository teacherRepo, IClassRoomRepository repo) =>
+        group.MapPost("/", async (CreateClassRoomDto dto, ClassroomDbContext db) =>
         {
-            if (await teacherRepo.GetByIdAsync(dto.TeacherId) == null)
-                return Results.NotFound("Teacher not found.");
-
+            // Note: In a pure microservice, we'd call Identity.API to verify TeacherId.
+            // For now, we trust the input since we share the DB context conceptually.
             var classroom = new ClassRoom { Name = dto.Name, TeacherId = dto.TeacherId, IsActive = true };
-            await repo.CreateAsync(classroom);
+            db.ClassRooms.Add(classroom);
+            await db.SaveChangesAsync();
             return Results.Created($"/api/classrooms/{classroom.Id}", new { classroom.Id, Message = "Classroom created." });
         }).WithName("CreateClassroom");
 
-        group.MapPut("/{id}", async (int id, UpdateClassRoomDto dto, IClassRoomRepository repo) =>
+        group.MapPut("/{id}", async (int id, UpdateClassRoomDto dto, ClassroomDbContext db) =>
         {
-            var c = await repo.GetByIdAsync(id);
+            var c = await db.ClassRooms.FindAsync(id);
             if (c == null) return Results.NotFound();
+            
             if (dto.Name != null) c.Name = dto.Name;
             if (dto.IsActive.HasValue) c.IsActive = dto.IsActive.Value;
-            await repo.UpdateAsync(c);
+            
+            await db.SaveChangesAsync();
             return Results.Ok(new { Message = "Classroom updated." });
         }).WithName("UpdateClassroom");
 
-        group.MapDelete("/{id}", async (int id, IClassRoomRepository repo) =>
+        group.MapDelete("/{id}", async (int id, ClassroomDbContext db) =>
         {
-            var c = await repo.GetByIdAsync(id);
+            var c = await db.ClassRooms.FindAsync(id);
             if (c == null) return Results.NotFound();
-            await repo.DeleteAsync(id);
+            
+            db.ClassRooms.Remove(c);
+            await db.SaveChangesAsync();
             return Results.Ok(new { Message = "Classroom deleted." });
         }).WithName("DeleteClassroom");
 
         // ── Token ──
-        group.MapPut("/{classRoomId}/token", async (int classRoomId, TokenDto dto, GitMonitorDbContext db) =>
+        group.MapPut("/{classRoomId}/token", async (int classRoomId, TokenDto dto, ClassroomDbContext db) =>
         {
             var classroom = await db.ClassRooms.Include(c => c.StudentGroups).FirstOrDefaultAsync(c => c.Id == classRoomId);
             if (classroom == null) return Results.NotFound();
+            
             foreach (var g in classroom.StudentGroups) g.Token = dto.Token;
             await db.SaveChangesAsync();
             return Results.Ok(new { Message = $"Token applied to {classroom.StudentGroups.Count} groups." });
         }).WithName("ConfigureToken");
 
         // ── Import Students ──
-        group.MapPost("/{classRoomId}/import", async (int classRoomId, List<ImportStudentDto> students, GitMonitorDbContext db) =>
+        group.MapPost("/{classRoomId}/import", async (int classRoomId, List<ImportStudentDto> students, ClassroomDbContext db) =>
         {
             var classroom = await db.ClassRooms.FindAsync(classRoomId);
             if (classroom == null) return Results.NotFound("Classroom not found.");
@@ -125,7 +138,7 @@ public static class ClassRoomEndpoints
         }).WithName("ImportStudents");
 
         // ── Remove Student from Classroom ──
-        group.MapDelete("/{classRoomId}/students/{studentId}", async (int classRoomId, int studentId, GitMonitorDbContext db) =>
+        group.MapDelete("/{classRoomId}/students/{studentId}", async (int classRoomId, int studentId, ClassroomDbContext db) =>
         {
             var student = await db.Students
                 .Include(s => s.Group)
@@ -133,10 +146,6 @@ public static class ClassRoomEndpoints
                 
             if (student == null) return Results.NotFound("Student not found in this classroom.");
 
-            // Also delete sync histories for this student
-            var histories = await db.SyncHistories.Where(sh => sh.StudentId == studentId).ToListAsync();
-            db.SyncHistories.RemoveRange(histories);
-            
             db.Students.Remove(student);
             await db.SaveChangesAsync();
             

@@ -1,22 +1,20 @@
-using GitMonitor.Application.Services;
+using Monitoring.API.Services;
 
-namespace GitMonitor.API.Endpoints;
+namespace Monitoring.API.Endpoints;
 
 public static class SyncEndpoints
 {
     public static void MapSyncEndpoints(this WebApplication app)
     {
-        // GET Dashboard
-        app.MapGet("/api/dashboard/{classRoomId}", async (int classRoomId, ISyncService syncService) =>
+        var group = app.MapGroup("/api").WithTags("Sync");
+
+        group.MapGet("/dashboard/{classRoomId}", async (int classRoomId, SyncService syncService) =>
         {
             var result = await syncService.GetDashboardAsync(classRoomId);
             return result != null ? Results.Ok(result) : Results.NotFound("Classroom not found");
-        })
-        .WithName("GetDashboard")
-        .WithTags("Sync");
+        }).WithName("GetDashboard");
 
-        // POST Sync
-        app.MapPost("/api/sync/{classRoomId}", async (int classRoomId, ISyncService syncService) =>
+        group.MapPost("/sync/{classRoomId}", async (int classRoomId, SyncService syncService) =>
         {
             try
             {
@@ -27,8 +25,6 @@ public static class SyncEndpoints
             {
                 return Results.BadRequest(ex.Message);
             }
-        })
-        .WithName("SyncGitHubData")
-        .WithTags("Sync");
+        }).WithName("SyncGitHubData");
     }
 }
