@@ -1,0 +1,6 @@
+@GitStudentMonitorApi_HostAddress = http://localhost:5169
+
+GET {{GitStudentMonitorApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
