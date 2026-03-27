@@ -35,6 +35,7 @@ public class StudentGroup
     public string? Token { get; set; }
     public GroupStatus Status { get; set; }
     public string? LastErrorMessage { get; set; }
+    public DateTime? LastSyncPushedAt { get; set; }
     public List<Student> Students { get; set; } = new();
 }
 
@@ -46,4 +47,7 @@ public class Student
     public string Name { get; set; } = string.Empty;
     public string GitHubUsername { get; set; } = string.Empty;
     public string? AvatarUrl { get; set; }
+    public string? Email { get; set; }
+    public bool IsLeader { get; set; } = false;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

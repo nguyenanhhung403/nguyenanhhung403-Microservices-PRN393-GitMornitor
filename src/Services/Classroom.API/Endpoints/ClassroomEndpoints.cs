@@ -94,7 +94,6 @@ public static class ClassRoomEndpoints
             if (classroom == null) return Results.NotFound("Classroom not found.");
 
             var existingCodes = await db.Students
-                .Where(s => s.Group.ClassRoomId == classRoomId)
                 .Select(s => s.StudentCode).ToListAsync();
 
             int maxCode = 0;
@@ -120,7 +119,19 @@ public static class ClassRoomEndpoints
                 var existingGroup = await db.StudentGroups.FirstOrDefaultAsync(g => g.ClassRoomId == classRoomId && g.RepositoryUrl == item.RepositoryUrl);
                 if (existingGroup == null)
                 {
-                    existingGroup = new StudentGroup { ClassRoomId = classRoomId, GroupName = groupName, RepositoryUrl = item.RepositoryUrl };
+                    // Inherit token from any existing group in the same classroom
+                    var existingToken = await db.StudentGroups
+                        .Where(g => g.ClassRoomId == classRoomId && g.Token != null)
+                        .Select(g => g.Token)
+                        .FirstOrDefaultAsync();
+
+                    existingGroup = new StudentGroup 
+                    { 
+                        ClassRoomId = classRoomId, 
+                        GroupName = groupName, 
+                        RepositoryUrl = item.RepositoryUrl,
+                        Token = existingToken
+                    };
                     db.StudentGroups.Add(existingGroup);
                     await db.SaveChangesAsync();
                 }

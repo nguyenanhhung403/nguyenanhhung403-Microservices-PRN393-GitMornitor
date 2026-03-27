@@ -13,6 +13,27 @@ public interface IGitHubApi
 
     [Get("/repos/{owner}/{repo}/stats/contributors")]
     Task<List<ContributorStatsResponse>?> GetContributorStatsAsync(string owner, string repo);
+
+    [Post("/graphql")]
+    Task<GraphQLResponse<dynamic>> QueryAsync([Body] GraphQLRequest request);
+}
+
+// ── GraphQL Models ──
+public class GraphQLRequest
+{
+    [JsonPropertyName("query")] public string Query { get; set; } = string.Empty;
+    [JsonPropertyName("variables")] public object? Variables { get; set; }
+}
+
+public class GraphQLResponse<T>
+{
+    [JsonPropertyName("data")] public T? Data { get; set; }
+    [JsonPropertyName("errors")] public List<GraphQLError>? Errors { get; set; }
+}
+
+public class GraphQLError
+{
+    [JsonPropertyName("message")] public string Message { get; set; } = string.Empty;
 }
 
 // ── Models ──

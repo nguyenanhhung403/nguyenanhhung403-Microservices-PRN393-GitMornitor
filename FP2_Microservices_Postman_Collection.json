@@ -1,0 +1,355 @@
+{
+  "info": {
+    "name": "FP2 Microservices API",
+    "description": "Collection cho dự án FP2 Microservices, bao gồm Gateway và các service: Identity, Classroom, Monitoring",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Identity.API (Teachers)",
+      "item": [
+        {
+          "name": "GetAllTeachers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/teachers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "teachers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GetTeacherById",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/teachers/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "teachers",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "CreateTeacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"Username\": \"teacher01\",\r\n  \"Name\": \"Nguyen Van A\",\r\n  \"Email\": \"nva123@gmail.com\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/teachers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "teachers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "UpdateTeacher",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"Name\": \"Nguyen Van A - Updated\",\r\n  \"Email\": \"nva123_update@gmail.com\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/teachers/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "teachers",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DeleteTeacher",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/teachers/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "teachers",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Classroom.API (Classrooms)",
+      "item": [
+        {
+          "name": "GetAllClassrooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/classrooms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "classrooms"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GetClassroomById",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/classrooms/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "classrooms",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "CreateClassroom",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"Name\": \"PRN393 - Fall 2026\",\r\n  \"TeacherId\": 1\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/classrooms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "classrooms"
+              ]
+            }
+          }
+        },
+        {
+          "name": "UpdateClassroom",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"Name\": \"PRN393 - Fall 2026 (Updated)\",\r\n  \"IsActive\": true\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/classrooms/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "classrooms",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DeleteClassroom",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/classrooms/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "classrooms",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "ConfigureToken",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"Token\": \"github_pat_...\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/classrooms/1/token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "classrooms",
+                "1",
+                "token"
+              ]
+            }
+          }
+        },
+        {
+          "name": "ImportStudents",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n  {\r\n    \"UserName\": \"student_github_01\",\r\n    \"RepositoryUrl\": \"https://github.com/student_github_01/project_repo\"\r\n  }\r\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/classrooms/1/import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "classrooms",
+                "1",
+                "import"
+              ]
+            }
+          }
+        },
+        {
+          "name": "RemoveStudentFromClassroom",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/classrooms/1/students/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "classrooms",
+                "1",
+                "students",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Monitoring.API",
+      "item": [
+        {
+          "name": "GetDashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "SyncGitHubData",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sync",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

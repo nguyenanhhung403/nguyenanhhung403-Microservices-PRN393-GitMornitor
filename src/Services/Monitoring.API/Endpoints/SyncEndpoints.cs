@@ -23,8 +23,29 @@ public static class SyncEndpoints
             }
             catch (Exception ex)
             {
-                return Results.BadRequest(ex.Message);
+                var errorMsg = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;
+                return Results.BadRequest(errorMsg);
             }
         }).WithName("SyncGitHubData");
+
+        group.MapPost("/sync/group/{groupId}", async (int groupId, SyncService syncService) =>
+        {
+            try
+            {
+                var result = await syncService.SyncStudentGroupAsync(groupId);
+                return Results.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var errorMsg = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;
+                return Results.BadRequest(errorMsg);
+            }
+        }).WithName("SyncGroupGitHubData");
+
+        group.MapGet("/sync-history/{classRoomId}", async (int classRoomId, SyncService syncService) =>
+        {
+            var result = await syncService.GetSyncHistoryAsync(classRoomId);
+            return Results.Ok(result);
+        }).WithName("GetSyncHistory");
     }
 }

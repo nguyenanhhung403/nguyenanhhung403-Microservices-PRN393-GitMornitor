@@ -21,7 +21,7 @@ builder.Services.AddRefitClient<IGitHubApi>()
         c.BaseAddress = new Uri("https://api.github.com");
         c.DefaultRequestHeaders.Add("User-Agent", "Monitoring-API");
         c.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
-        c.Timeout = TimeSpan.FromSeconds(8);
+        c.Timeout = TimeSpan.FromSeconds(30);
     })
     .AddHttpMessageHandler<GitHubAuthHandler>();
 
@@ -55,6 +55,11 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<MonitoringDbContext>();
     db.Database.EnsureCreated();
+
+    // Manual patch for SQLite schema update (EnsureCreated doesn't handle migrations)
+    try {
+        db.Database.ExecuteSqlRaw("ALTER TABLE StudentGroups ADD COLUMN LastSyncPushedAt TEXT NULL;");
+    } catch { /* Column already exists or table not ready */ }
 }
 
 app.Run();
