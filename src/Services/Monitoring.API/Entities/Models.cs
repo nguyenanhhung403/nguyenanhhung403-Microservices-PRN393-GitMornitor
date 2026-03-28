@@ -22,6 +22,7 @@ public class SyncHistory
 public class ClassRoom
 {
     public int Id { get; set; }
+    public int TeacherId { get; set; }
     public string Name { get; set; } = string.Empty;
     public List<StudentGroup> StudentGroups { get; set; } = new();
 }
@@ -36,6 +37,7 @@ public class StudentGroup
     public GroupStatus Status { get; set; }
     public string? LastErrorMessage { get; set; }
     public DateTime? LastSyncPushedAt { get; set; }
+    public ClassRoom? ClassRoom { get; set; }
     public List<Student> Students { get; set; } = new();
 }
 
