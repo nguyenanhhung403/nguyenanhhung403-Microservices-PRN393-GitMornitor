@@ -107,7 +107,10 @@ export const Home = () => {
             <RefreshCw size={18} className={syncing ? 'spinner' : ''} /> {syncing ? 'Syncing...' : 'Sync Git'}
           </button>
         </div>
-        {lastSyncTime && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Last synced: {new Date(lastSyncTime).toLocaleString()}</span>}
+        {lastSyncTime && <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', background: 'var(--surface-hover)', padding: '0.4rem 0.8rem', borderRadius: '20px', border: '1px solid var(--border)' }}>
+          <Clock size={14} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '0.4rem' }} />
+          Last synced: {new Date(lastSyncTime).toLocaleString()}
+        </span>}
       </div>
 
       {!selectedClassId ? (
@@ -151,21 +154,36 @@ export const Home = () => {
               <div className="card glass-card" style={{ flex: 1.5 }}>
                 <div className="table-container" style={{ border: 'none' }}>
                   <table>
-                    <thead><tr><th>Rank</th><th>Student</th><th>Group</th><th>Commits</th><th>Lines (+/-)</th></tr></thead>
+                    <thead><tr><th>Rank</th><th>Student</th><th>Group</th><th>Commits</th><th>Lines (+/-)</th><th>Last Commit</th></tr></thead>
                     <tbody>
                       {dashboardData.leaderboard?.map((s: any, idx: number) => (
                         <tr key={idx}>
                           <td><div className={`rank-badge ${idx < 3 ? 'rank-top' : ''}`}>{idx + 1}</div></td>
                           <td>
                             <div className="student-profile">
-                              {s.avatarUrl && <img src={s.avatarUrl} alt="" className="avatar" style={{ border: idx < 3 ? '2px solid #f6d365' : '2px solid var(--border)' }} />}
-                              <div><div className="student-name">{s.name} <span className="student-code">({s.studentCode})</span></div>
-                                <div className="student-username">@{s.gitHubUsername}</div></div>
+                              <a href={`https://github.com/${s.gitHubUsername}`} target="_blank" rel="noreferrer" className="avatar-link">
+                                {s.avatarUrl && <img src={s.avatarUrl} alt="" className="avatar" style={{ border: idx < 3 ? '2px solid #f6d365' : '2px solid var(--border)' }} />}
+                              </a>
+                              <div>
+                                <a href={`https://github.com/${s.gitHubUsername}`} target="_blank" rel="noreferrer" className="student-name-link">
+                                  <div className="student-name">{s.name} <span className="student-code">({s.studentCode})</span></div>
+                                </a>
+                                <div className="student-username">@{s.gitHubUsername}</div>
+                              </div>
                             </div>
                           </td>
                           <td><span className="group-badge">{s.groupName}</span></td>
                           <td><b style={{ fontSize: '1.1rem' }}>{s.commitCount}</b></td>
                           <td><span className="lines-added">+{s.linesAdded}</span> / <span className="lines-deleted">-{s.linesDeleted}</span></td>
+                          <td>
+                            <div className="last-commit-time">
+                              {s.lastCommitTime ? (
+                                <span title={new Date(s.lastCommitTime).toLocaleString()}>
+                                  {new Date(s.lastCommitTime).toLocaleDateString()}
+                                </span>
+                              ) : <span className="text-muted">N/A</span>}
+                            </div>
+                          </td>
                         </tr>
                       ))}
                       {(!dashboardData.leaderboard || dashboardData.leaderboard.length === 0) && <tr><td colSpan={5} className="empty-state">No data. Please sync.</td></tr>}
@@ -227,13 +245,24 @@ export const Home = () => {
                   <div className="student-insights-grid">
                   {studentInsights.map((si, idx) => (
                     <div className="insight-card" key={idx}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                        {si.avatar && <img src={si.avatar} alt="" className="avatar" />}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                        <a href={`https://github.com/${si.username}`} target="_blank" rel="noreferrer">
+                          {si.avatar && <img src={si.avatar} alt="" className="avatar hover-scale" />}
+                        </a>
                         <div>
-                          <div style={{ fontWeight: 700 }}>{si.username}</div>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{si.totalCommits} commits · <span className="lines-added">+{si.totalAdded}</span> <span className="lines-deleted">-{si.totalDeleted}</span></div>
+                          <a href={`https://github.com/${si.username}`} target="_blank" rel="noreferrer" className="student-name-link">
+                            <div style={{ fontWeight: 700, fontSize: '1rem' }}>{si.username}</div>
+                          </a>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            {si.totalCommits} commits · <span className="lines-added">+{si.totalAdded}</span> <span className="lines-deleted">-{si.totalDeleted}</span>
+                          </div>
                         </div>
                       </div>
+                      {si.lastCommitTime && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <Clock size={12} /> Last commit: {new Date(si.lastCommitTime).toLocaleString()}
+                        </div>
+                      )}
                       <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Projects</div>
                       {si.repos.map((r: any, ridx: number) => (
                         <div key={ridx} style={{ padding: '0.35rem 0', borderBottom: ridx < si.repos.length - 1 ? '1px solid var(--border)' : 'none', fontSize: '0.85rem' }}>
@@ -362,40 +391,49 @@ export const Home = () => {
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .grid-2 { display: flex; gap: 1.5rem; flex-wrap: wrap; }
-        .stat-card { display: flex; align-items: center; gap: 1rem; padding: 1.5rem; }
-        .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .stat-card { display: flex; align-items: center; gap: 1rem; padding: 1.5rem; border-radius: 20px; }
+        .stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 8px 16px -4px rgba(0,0,0,0.1); }
         .stat-info { display: flex; flex-direction: column; }
-        .stat-label { font-size: 0.875rem; color: var(--text-muted); font-weight: 500; }
-        .stat-value { font-size: 1.5rem; font-weight: 700; }
-        .section-title { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 1.25rem; }
-        .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--surface-hover); color: var(--text-muted); font-weight: bold; font-size: 0.875rem; }
-        .rank-top { background: linear-gradient(135deg, #f6d365, #fda085); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        .group-badge { background: var(--surface-hover); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; border: 1px solid var(--border); }
-        .student-profile { display: flex; align-items: center; gap: 0.75rem; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); object-fit: cover; }
-        .avatar-sm { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-        .student-name { font-weight: 600; }
-        .student-code { color: var(--text-muted); font-weight: normal; font-size: 0.85rem; }
-        .student-username { font-size: 0.75rem; color: var(--text-muted); }
-        .lines-added { color: var(--secondary); font-weight: 500; }
-        .lines-deleted { color: var(--danger); font-weight: 500; }
-        .collapsible-repo { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.75rem; overflow: hidden; }
-        .collapsible-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; cursor: pointer; transition: background 0.15s; }
+        .stat-label { font-size: 0.875rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0.25rem; }
+        .stat-value { font-size: 1.625rem; font-weight: 800; letter-spacing: -0.02em; }
+        .section-title { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.5rem; font-size: 1.35rem; font-weight: 700; }
+        .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: var(--surface-hover); color: var(--text-muted); font-weight: 800; font-size: 0.9rem; transition: transform 0.2s; }
+        .rank-top { background: linear-gradient(135deg, #FFD700, #FFA500); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); transform: scale(1.1); box-shadow: 0 4px 12px -2px rgba(255,165,0,0.3); }
+        .group-badge { background: rgba(99, 102, 241, 0.08); color: var(--primary); padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(99, 102, 241, 0.1); }
+        .student-profile { display: flex; align-items: center; gap: 1rem; }
+        .avatar { width: 44px; height: 44px; border-radius: 14px; border: 2px solid var(--border); object-fit: cover; transition: transform 0.2s, border-color 0.2s; }
+        .avatar:hover { transform: scale(1.1); border-color: var(--primary); }
+        .avatar-sm { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; }
+        .student-name { font-weight: 700; color: var(--text); }
+        .student-name-link { text-decoration: none; color: inherit; }
+        .student-name-link:hover .student-name { color: var(--primary); text-decoration: underline; }
+        .student-code { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; }
+        .student-username { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; letter-spacing: 0.02em; }
+        .lines-added { color: var(--secondary); font-weight: 600; }
+        .lines-deleted { color: var(--danger); font-weight: 600; }
+        .last-commit-time { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+        .collapsible-repo { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem; overflow: hidden; background: var(--surface); transition: all 0.2s; }
+        .collapsible-repo:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+        .collapsible-header { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; cursor: pointer; transition: background 0.15s; }
         .collapsible-header:hover { background: var(--surface-hover); }
-        .collapsible-body { padding: 0 1rem 1rem; }
-        .contributor-item { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .collapsible-body { padding: 0 1.25rem 1.25rem; background: var(--grad-surface); }
+        .contributor-item { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; padding: 0.5rem; border-radius: 12px; transition: background 0.2s; }
+        .contributor-item:hover { background: rgba(255,255,255,0.05); }
         .contributor-info { display: flex; flex-direction: column; }
-        .c-name { font-size: 0.9rem; font-weight: 500; }
-        .ext-badge { background: rgba(245,158,11,0.15); color: #d97706; font-size: 0.65rem; padding: 0.15rem 0.35rem; border-radius: 12px; margin-left: 0.25rem; text-transform: uppercase; font-weight: bold; }
-        .c-stats { font-size: 0.8rem; color: var(--text-muted); }
-        .repo-error { margin-top: 0.5rem; padding: 0.5rem; background: rgba(239,68,68,0.1); color: var(--danger); border-radius: 4px; font-size: 0.8rem; }
-        .tab-bar { display: flex; gap: 0; margin-bottom: 1rem; border-bottom: 2px solid var(--border); }
-        .tab-btn { padding: 0.75rem 1.25rem; border: none; background: none; cursor: pointer; font-weight: 500; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; font-size: 0.9rem; }
-        .tab-btn:hover { color: var(--text); background: var(--surface-hover); }
-        .tab-active { color: var(--primary) !important; border-bottom-color: var(--primary) !important; font-weight: 600; }
-        .student-insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
-        .insight-card { padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-hover); }
-        .skeleton-loader { width: 60%; height: 12px; background: linear-gradient(90deg, var(--surface-hover) 25%, var(--border) 50%, var(--surface-hover) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 0.5rem; }
+        .c-name { font-size: 0.95rem; font-weight: 600; }
+        .ext-badge { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; font-size: 0.6rem; padding: 0.15rem 0.45rem; border-radius: 20px; margin-left: 0.4rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.02em; }
+        .c-stats { font-size: 0.85rem; color: var(--text-muted); }
+        .repo-error { margin-top: 0.75rem; padding: 0.75rem; background: rgba(239,68,68,0.08); color: var(--danger); border-radius: 8px; font-size: 0.85rem; border: 1px solid rgba(239,68,68,0.1); }
+        .tab-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding: 0 0.5rem; }
+        .tab-btn { padding: 1rem 1.5rem; border: none; background: none; cursor: pointer; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 0.6rem; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.3s; font-size: 1rem; }
+        .tab-btn:hover { color: var(--text); background: var(--surface-hover); border-top-left-radius: 12px; border-top-right-radius: 12px; }
+        .tab-active { color: var(--primary) !important; border-bottom-color: var(--primary) !important; font-weight: 700; }
+        .student-insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
+        .insight-card { padding: 1.5rem; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); box-shadow: var(--shadow); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .insight-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-xl); border-color: var(--primary); }
+        .hover-scale { transition: transform 0.2s; }
+        .hover-scale:hover { transform: scale(1.1); }
+        .skeleton-loader { width: 100%; height: 200px; background: linear-gradient(90deg, var(--surface-hover) 25%, var(--border) 50%, var(--surface-hover) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 16px; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
       `}</style>
     </div>

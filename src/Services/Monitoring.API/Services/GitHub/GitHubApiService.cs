@@ -94,13 +94,23 @@ public class GitHubApiService : IGitHubApiService
                 var stats = await _refitApi.GetContributorStatsAsync(owner, repo);
                 if (stats == null || stats.Count == 0) continue; // retry if empty, might be computing
 
-                return stats.Select(s => new ContributorStatsResult
-                {
-                    Username = s.Author?.Login ?? "Unknown",
-                    AvatarUrl = s.Author?.AvatarUrl,
-                    TotalCommits = s.Total,
-                    TotalAdditions = s.Weeks.Sum(w => w.A),
-                    TotalDeletions = s.Weeks.Sum(w => w.D)
+                // Also fetch latest commits to get "Last Commit" time
+                IEnumerable<GitHubCommitResult>? latestCommits = null;
+                try { latestCommits = await GetCommitsAsync(owner, repo, token); } catch { }
+
+                return stats.Select(s => {
+                    var lastCommit = latestCommits?.OrderByDescending(c => c.Date)
+                        .FirstOrDefault(c => c.AuthorLogin.Equals(s.Author?.Login, StringComparison.OrdinalIgnoreCase));
+                    
+                    return new ContributorStatsResult
+                    {
+                        Username = s.Author?.Login ?? "Unknown",
+                        AvatarUrl = s.Author?.AvatarUrl,
+                        TotalCommits = s.Total,
+                        TotalAdditions = s.Weeks.Sum(w => w.A),
+                        TotalDeletions = s.Weeks.Sum(w => w.D),
+                        LastCommitDate = lastCommit?.Date
+                    };
                 });
             }
             catch (Refit.ApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Accepted)
