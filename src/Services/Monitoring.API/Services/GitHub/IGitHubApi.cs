@@ -98,4 +98,5 @@ public class ContributorStatsResult
     public int TotalCommits { get; set; }
     public int TotalAdditions { get; set; }
     public int TotalDeletions { get; set; }
+    public DateTime? LastCommitDate { get; set; }
 }

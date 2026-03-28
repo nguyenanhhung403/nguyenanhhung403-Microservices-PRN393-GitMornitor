@@ -143,7 +143,8 @@ public class SyncService
                         SyncTime = DateTime.UtcNow,
                         CommitCount = stat.TotalCommits,
                         LinesAdded = stat.TotalAdditions,
-                        LinesDeleted = stat.TotalDeletions
+                        LinesDeleted = stat.TotalDeletions,
+                        LastCommitDate = stat.LastCommitDate
                     });
                 }
             }
@@ -240,6 +241,7 @@ public class SyncService
                     commits = sync?.CommitCount ?? 0,
                     linesAdded = sync?.LinesAdded ?? 0,
                     linesDeleted = sync?.LinesDeleted ?? 0,
+                    lastCommitTime = sync?.LastCommitDate,
                     isExternal = isExternal
                 });
 
@@ -254,7 +256,8 @@ public class SyncService
                         sync?.CommitCount ?? 0,
                         sync?.LinesAdded ?? 0,
                         sync?.LinesDeleted ?? 0,
-                        sync?.SyncTime
+                        sync?.SyncTime,
+                        sync?.LastCommitDate
                     ));
                 }
             }
