@@ -22,7 +22,7 @@ public class MonitoringDbContext : DbContext
         // Map shared models
         modelBuilder.Entity<ClassRoom>().HasKey(c => c.Id);
         modelBuilder.Entity<StudentGroup>().HasKey(g => g.Id);
-        modelBuilder.Entity<StudentGroup>().HasOne<ClassRoom>().WithMany(c => c.StudentGroups).HasForeignKey(g => g.ClassRoomId);
+        modelBuilder.Entity<StudentGroup>().HasOne(g => g.ClassRoom).WithMany(c => c.StudentGroups).HasForeignKey(g => g.ClassRoomId);
         
         modelBuilder.Entity<Student>().HasKey(s => s.Id);
         modelBuilder.Entity<Student>().HasOne<StudentGroup>().WithMany(g => g.Students).HasForeignKey(s => s.GroupId);

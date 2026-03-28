@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Classroom.API.DTOs;
 
-public record CreateClassRoomDto(string Name, int TeacherId);
+public record CreateClassRoomDto(string Name);
 public record UpdateClassRoomDto(string? Name, bool? IsActive);
 public record ClassRoomResponseDto(int Id, string Name, int TeacherId, bool IsActive, int TotalGroups, int TotalStudents);
 

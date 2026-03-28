@@ -8,5 +8,6 @@ public class Teacher
     public string? Email { get; set; }
     public string? DefaultGitHubToken { get; set; }
     public DateTime? LastLogin { get; set; }
+    public string PasswordHash { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

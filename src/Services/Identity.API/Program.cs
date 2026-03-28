@@ -28,6 +28,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // ── Endpoints ──
+app.MapAuthEndpoints();
 app.MapTeacherEndpoints();
 
 // ── DB Init ──
@@ -35,6 +36,10 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
     db.Database.EnsureCreated();
+
+    // Migration: add PasswordHash column if not exists
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Teachers ADD COLUMN PasswordHash TEXT NOT NULL DEFAULT '';"); }
+    catch { /* Column already exists */ }
 }
 
 app.Run();
